@@ -1,0 +1,712 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>Letter</title>
+        <style>
+            * {
+                margin: 0;
+                padding: 0;
+                box-sizing: border-box;
+            }
+            :root {
+                --bg-color: #cfe8cf;
+                --envelope-inside: #ddd;
+                --envelope-main: #ffffff;
+                --envelope-sides: #f7f7f7;
+                --heart-red: #e63946;
+                --text-pink: #d63384;
+                --envelope-width: min(360px, 80vw, 44vh);
+                --envelope-height: calc(var(--envelope-width) * 0.6333);
+            }
+
+            body {
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                height: 100vh;
+                background-color: var(--bg-color);
+                background-image: linear-gradient(
+                    135deg,
+                    #eff9e8 0%,
+                    #c9e8c2 52%,
+                    #f7e6a2 100%
+                );
+                margin: 0;
+                font-family: "Segoe UI", sans-serif;
+                overflow: hidden;
+                transition: background-color 0.5s ease-in-out;
+            }
+
+            @font-face {
+                font-family: "lr";
+                src: url(LR.otf) format("opentype");
+            }
+            @font-face {
+                font-family: "sb";
+                src: url(SB.otf) format("opentype");
+            }
+
+            .envelope-wrapper {
+                position: relative;
+                z-index: 2;
+                cursor: pointer;
+                transition: transform 0.3s ease-in-out;
+            }
+
+            .envelope-wrapper:hover {
+                transform: scale(1.05);
+            }
+
+            .envelope-wrapper:active {
+                transform: scale(0.98);
+            }
+
+            .envelope {
+                position: relative;
+                top: min(5vh, 36px);
+                width: var(--envelope-width);
+                height: var(--envelope-height);
+                background-color: var(--envelope-inside);
+                box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+                border-radius: 2px;
+            }
+
+            .flap {
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 0;
+                height: 0;
+                border-left: calc(var(--envelope-width) / 2) solid transparent;
+                border-right: calc(var(--envelope-width) / 2) solid transparent;
+                border-top: calc(var(--envelope-width) * 0.4167) solid var(--envelope-main);
+                transform-origin: top;
+                z-index: 5;
+                transition:
+                    transform 0.4s ease-in-out 0.6s,
+                    z-index 0.4s step-start 0.6s,
+                    filter 1.6s ease-in-out;
+                filter: drop-shadow(0 3px 3px rgba(0, 0, 0, 0.4));
+                border-radius: 2px;
+            }
+
+            .pocket {
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                width: 0;
+                height: 0;
+                border-left: calc(var(--envelope-width) / 2) solid transparent;
+                border-right: calc(var(--envelope-width) / 2) solid transparent;
+                border-bottom: calc(var(--envelope-width) * 0.3667) solid var(--envelope-main);
+                z-index: 4;
+                filter: drop-shadow(0 -1px 1px rgba(0, 0, 0, 0.1));
+                border-radius: 2px;
+            }
+
+            .side-folds {
+                position: absolute;
+                bottom: 0;
+                left: 0;
+                width: var(--envelope-width);
+                height: var(--envelope-height);
+                z-index: 3;
+                border-radius: 2px;
+            }
+
+            .side-folds::before {
+                content: "";
+                position: absolute;
+                left: 0;
+                border-left: calc(var(--envelope-width) * 0.4833) solid var(--envelope-sides);
+                border-top: calc(var(--envelope-height) / 2) solid transparent;
+                border-bottom: calc(var(--envelope-height) / 2) solid transparent;
+                border-radius: 2px;
+                filter: drop-shadow(2px 0 2px rgba(0, 0, 0, 0.1));
+            }
+
+            .side-folds::after {
+                content: "";
+                position: absolute;
+                right: 0;
+                border-right: calc(var(--envelope-width) * 0.4833) solid var(--envelope-sides);
+                border-top: calc(var(--envelope-height) / 2) solid transparent;
+                border-bottom: calc(var(--envelope-height) / 2) solid transparent;
+                border-radius: 2px;
+                filter: drop-shadow(-2px 0 2px rgba(0, 0, 0, 0.1));
+            }
+
+            .letter {
+                position: absolute;
+                bottom: 10px;
+                left: 50%;
+                transform: translate(-50%, 0);
+                width: 95%;
+                height: 90%;
+                background: white;
+                border-radius: 5px;
+                padding: clamp(15px, 1.5vw, 21px);
+                box-sizing: border-box;
+                text-align: center;
+                box-shadow: 0 3px 8px rgba(0, 0, 0, 0.5);
+                z-index: 2;
+                transition:
+                    transform 0.6s ease-in-out,
+                    z-index 0.6s step-start;
+            }
+
+            .letter h2 {
+                font-family: "sb";
+                font-size: 0.6rem;
+                color: var(--text-pink);
+                margin: 15px 0 10px 0;
+                text-align: left;
+                line-height: 1.2;
+            }
+            .letter h3 {
+                font-family: "sb";
+                font-size: 0.6rem;
+                color: green;
+                margin: 10px 0 10px 0;
+                text-align: center;
+                line-height: 1.2;
+            }
+            .letter p {
+                font-family: "lr";
+                font-size: 0.5rem;
+                line-height: 1.1;
+                color: #555;
+                margin: 0;
+                text-align: left;
+                text-indent: 2em;
+                padding: 0 5px;
+            }
+            #sender {
+                text-align: right;
+                margin: 0 0 5px 0;
+            }
+
+            .envelope-wrapper.open .flap {
+                transform: rotateX(180deg);
+                z-index: 1;
+                transition:
+                    transform 0.4s ease-in-out,
+                    z-index 0.4s step-end;
+            }
+
+            .envelope-wrapper.open .letter {
+                transform: translate(-50%, -70%);
+                z-index: 10;
+                transition:
+                    transform 0.6s ease-in-out 0.4s,
+                    z-index 0.6s step-end 0.4s;
+            }
+            .particle-layer {
+                position: absolute;
+                inset: 0;
+                z-index: 12;
+                pointer-events: none;
+                overflow: visible;
+            }
+            .particle {
+                position: absolute;
+                top: 42%;
+                left: 50%;
+                color: var(--particle-color);
+                font-family: "sb", sans-serif;
+                font-size: var(--particle-size);
+                line-height: 1;
+                opacity: 0;
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.18);
+                animation: particle-burst 1.15s cubic-bezier(0.22, 1, 0.36, 1)
+                    var(--particle-delay) forwards;
+            }
+            .particle--sticker {
+                font-size: clamp(0.45rem, 1vw, 0.6rem);
+                font-weight: bold;
+            }
+            .particle--heart {
+                font-size: clamp(0.85rem, 2vw, 1.2rem);
+                text-shadow: 0 2px 3px rgba(0, 0, 0, 0.2);
+            }
+            .envelope-flower-layer {
+                position: fixed;
+                left: 50%;
+                bottom: -13vh;
+                width: 100vw;
+                height: 126.9vw;
+                z-index: 1;
+                transform: translateX(-50%);
+                pointer-events: none;
+                overflow: visible;
+            }
+            .envelope-flower {
+                position: absolute;
+                left: var(--flower-left);
+                top: var(--flower-top);
+                color: var(--flower-color);
+                font-size: var(--flower-size);
+                line-height: 1;
+                opacity: 0;
+                font-weight: 900;
+                text-shadow:
+                    0 1px 0 rgba(255, 255, 255, 0.75),
+                    0 2px 4px rgba(0, 0, 0, 0.3);
+                animation: envelope-flower-pop 3.2s ease-in-out var(--flower-delay) infinite;
+            }
+            @media (orientation: landscape) {
+                .envelope-flower-layer {
+                    width: min(100vw, 42vh);
+                    height: min(126.9vw, 53.3vh);
+                }
+            }
+            @keyframes envelope-flower-pop {
+                0%,
+                100% {
+                    opacity: 0;
+                    transform: translate(-50%, -50%) scale(0.15) rotate(-18deg);
+                }
+                18%,
+                58% {
+                    opacity: 1;
+                    transform: translate(-50%, -50%) scale(1) rotate(var(--flower-rotation));
+                }
+                72% {
+                    opacity: 0;
+                    transform: translate(-50%, -50%) scale(0.65) rotate(var(--flower-rotation));
+                }
+            }
+            .hbd-badge {
+                position: fixed;
+                top: 8px;
+                left: 50%;
+                z-index: 13;
+                width: min(58vw, 240px);
+                height: auto;
+                display: block;
+                opacity: 0;
+                transform: translate(-50%, 18px) scale(0.2) rotate(-8deg);
+                transform-origin: center bottom;
+                pointer-events: none;
+                filter: drop-shadow(0 5px 6px rgba(0, 0, 0, 0.18));
+                transition:
+                    opacity 0.35s ease,
+                    transform 0.65s cubic-bezier(0.22, 1, 0.36, 1),
+                    filter 0.35s ease;
+            }
+            .letter-open .hbd-badge {
+                opacity: 1;
+                transform: translate(-50%, 0) scale(1) rotate(-2deg);
+                animation: hbd-balloon-float 3.8s ease-in-out 0.7s infinite;
+            }
+            @keyframes hbd-balloon-float {
+                0%,
+                100% {
+                    transform: translate(-50%, 0) scale(1) rotate(-2deg);
+                }
+                50% {
+                    transform: translate(-50%, -7px) scale(1.015) rotate(2deg);
+                }
+            }
+            .top-graffiti-layer {
+                position: fixed;
+                inset: 0;
+                z-index: 12;
+                pointer-events: none;
+                overflow: hidden;
+            }
+            .top-graffiti {
+                position: absolute;
+                top: 0;
+                left: var(--graffiti-left);
+                color: var(--graffiti-color);
+                font-family: "sb", sans-serif;
+                font-size: var(--graffiti-size);
+                line-height: 1;
+                opacity: 0;
+                font-weight: 700;
+                text-shadow:
+                    0 1px 0 rgba(255, 255, 255, 0.75),
+                    0 2px 5px rgba(0, 0, 0, 0.65);
+                animation: graffiti-fall var(--graffiti-duration) ease-in var(--graffiti-delay)
+                    infinite;
+            }
+            .graffiti-burst-layer {
+                position: fixed;
+                inset: 0;
+                z-index: 12;
+                pointer-events: none;
+                overflow: hidden;
+            }
+            .burst-graffiti {
+                position: absolute;
+                top: var(--burst-top);
+                left: var(--burst-left);
+                color: var(--graffiti-color);
+                font-family: "sb", sans-serif;
+                font-size: var(--graffiti-size);
+                line-height: 1;
+                opacity: 0;
+                font-weight: 800;
+                filter: brightness(1.12) saturate(1.15);
+                text-shadow:
+                    0 1px 0 rgba(255, 255, 255, 0.9),
+                    0 2px 6px rgba(0, 0, 0, 0.8);
+                animation: graffiti-burst 1.5s cubic-bezier(0.22, 1, 0.36, 1)
+                    var(--burst-delay) forwards;
+            }
+            @keyframes graffiti-burst {
+                0% {
+                    opacity: 0;
+                    transform: translate(-50%, -50%) scale(0.2) rotate(0deg);
+                }
+                15% {
+                    opacity: 1;
+                }
+                100% {
+                    opacity: 0;
+                    transform: translate(var(--burst-x), var(--burst-y))
+                        scale(1) rotate(var(--burst-rotation));
+                }
+            }
+            @keyframes graffiti-fall {
+                0% {
+                    opacity: 0;
+                    transform: translate(0, 0) rotate(var(--graffiti-start-rotation)) scale(0.5);
+                }
+                12% {
+                    opacity: 1;
+                }
+                88% {
+                    opacity: 1;
+                }
+                100% {
+                    opacity: 0;
+                    transform: translate(var(--graffiti-drift), 48vh)
+                        rotate(var(--graffiti-end-rotation)) scale(1);
+                }
+            }
+            .bouquet {
+                position: fixed;
+                left: 50%;
+                bottom: -13vh;
+                width: 100vw;
+                max-width: none;
+                max-height: none;
+                height: auto;
+                object-fit: contain;
+                object-position: bottom center;
+                z-index: 1;
+                opacity: 0;
+                pointer-events: none;
+                transform: translate(-50%, 100%);
+                transform-origin: bottom center;
+                filter:
+                    brightness(1.04)
+                    contrast(1.24)
+                    saturate(0.94)
+                    drop-shadow(0 4px 6px rgba(35, 42, 46, 0.58));
+                transition:
+                    transform 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+                    opacity 0.45s ease;
+            }
+            .letter-open .bouquet {
+                opacity: 1;
+                pointer-events: auto;
+                transform: translate(-50%, 16%);
+            }
+            .letter-open .bouquet:hover {
+                z-index: 11;
+                transform: translate(-50%, 16%) scale(1.06);
+            }
+            .letter-open .bouquet:active {
+                z-index: 11;
+                transform: translate(-50%, 16%) scale(0.96);
+            }
+            .letter-open .bouquet:hover + .envelope-flower-layer,
+            .letter-open .bouquet:active + .envelope-flower-layer {
+                z-index: 11;
+            }
+            @media (orientation: landscape) {
+                .bouquet {
+                    width: min(100vw, 42vh);
+                }
+            }
+            @keyframes particle-burst {
+                0% {
+                    opacity: 0;
+                    transform: translate(-50%, -50%) scale(0.25) rotate(0deg);
+                }
+                15% {
+                    opacity: 1;
+                }
+                100% {
+                    opacity: 0;
+                    transform: translate(
+                            calc(-50% + var(--particle-x)),
+                            calc(-50% + var(--particle-y))
+                        )
+                        scale(1) rotate(var(--particle-rotation));
+                }
+            }
+            .seal {
+                position: absolute;
+                top: calc(var(--envelope-width) * 0.2833);
+                left: 50%;
+                transform: translateX(-50%);
+                width: calc(var(--envelope-width) * 0.1833);
+                height: calc(var(--envelope-width) * 0.1833);
+                z-index: 6;
+                transition:
+                    transform 0.3s,
+                    opacity 0.3s ease-in-out;
+                pointer-events: none;
+            }
+            .inst {
+                position: absolute;
+                bottom: clamp(10px, 2vh, 15px);
+                left: 50%;
+                transform: translateX(-50%);
+                z-index: 7;
+                font-size: clamp(0.7rem, 1.8vh, 0.8rem);
+                color: #555;
+            }
+            .flower {
+                position: absolute;
+                width: 40px;
+                height: auto;
+                z-index: 3;
+            }
+            .flower:nth-child(1) {
+                top: 10px;
+                right: 10px;
+                scale: 1.1;
+            }
+            .flower:nth-child(2) {
+                bottom: 10px;
+                left: 10px;
+                scale: 0.8;
+            }
+        </style>
+    </head>
+    <body>
+        <audio src="HVD.mp3" id="vm"></audio>
+        <audio src="letter.mp3" id="open-sound"></audio>
+        <audio src="seal.mp3" id="sealed"></audio>
+        <audio src="bgmusic.mp3" id="bgmusic" loop></audio>
+
+        <div class="envelope-wrapper" id="envelope">
+            <div class="envelope">
+                <div class="flap"></div>
+                <img src="seal.png" alt="" class="seal" />
+                <div class="particle-layer" aria-hidden="true"></div>
+                <pre class="inst">Click to Open</pre>
+
+                <div class="letter">
+                    <img src="flower.png" alt="" class="flower" />
+                    <img src="flower2.png" alt="" class="flower" />
+                    <h2>Dear, Jing jing</h2>
+                    <p>
+                        I just want you to know that I am so grateful that I met someone like you. You make me feel the joy and comfort I've never felt before.
+                        I hope we get through all the challenges and grow old together. I love you so much to the moon and back, and till the end of time.
+                    </p>
+                    <h3>Happy Birthday My Love!</h3>
+                    <p id="sender">— Your Husband, Jarl</p>
+                </div>
+
+                <div class="side-folds"></div>
+                <div class="pocket"></div>
+            </div>
+        </div>
+        <div class="top-graffiti-layer" aria-hidden="true"></div>
+        <div class="graffiti-burst-layer" aria-hidden="true"></div>
+        <img src="hbd.png" alt="Happy Birthday" class="hbd-badge" />
+        <img src="boquet-upscaled.png" alt="Flower bouquet" class="bouquet" />
+        <div class="envelope-flower-layer" aria-hidden="true"></div>
+
+        <script>
+            const envelope = document.getElementById("envelope");
+            const seal = document.querySelector(".seal");
+            const audio = document.getElementById("open-sound");
+            const vm = document.getElementById("vm");
+            const close = document.getElementById("sealed");
+            const bgmusic = document.getElementById("bgmusic");
+            const inst = document.querySelector(".inst");
+            const particleLayer = document.querySelector(".particle-layer");
+            const envelopeFlowerLayer = document.querySelector(".envelope-flower-layer");
+            const topGraffitiLayer = document.querySelector(".top-graffiti-layer");
+            const graffitiBurstLayer = document.querySelector(".graffiti-burst-layer");
+            const bouquet = document.querySelector(".bouquet");
+            const particleSymbols = ["*", "+", "x", ".", "~"];
+            const flowerColors = [
+                "#1b1b1b",
+                "#5a1f2a",
+                "#d49b22",
+                "#fff1c7",
+                "#8f2d56",
+                "#264653",
+                "#111111",
+                "#111111",
+                "#111111",
+                "#111111",
+            ];
+            const graffitiSymbols = ["✦", "+", "~", "•", "x", "✧", "/"];
+            const graffitiColors = [
+                "#1b8f4d",
+                "#6aaa64",
+                "#a8d5ba",
+                "#b7d7a8",
+                "#111111",
+                "#d4af37",
+                "#c62828",
+            ];
+
+            function createTopGraffiti() {
+                topGraffitiLayer.replaceChildren();
+
+                for (let index = 0; index < 24; index += 1) {
+                    const graffiti = document.createElement("span");
+                    const isRight = index % 2 === 0;
+                    const edge = isRight ? 52 + Math.random() * 45 : 3 + Math.random() * 45;
+                    graffiti.className = "top-graffiti";
+                    graffiti.textContent = graffitiSymbols[Math.floor(Math.random() * graffitiSymbols.length)];
+                    graffiti.style.setProperty("--graffiti-left", `${edge}%`);
+                    graffiti.style.setProperty("--graffiti-color", graffitiColors[index % graffitiColors.length]);
+                    graffiti.style.setProperty("--graffiti-size", `${0.7 + Math.random() * 0.7}rem`);
+                    graffiti.style.setProperty("--graffiti-drift", `${Math.random() * 160 - 80}px`);
+                    graffiti.style.setProperty("--graffiti-duration", `${4.5 + Math.random() * 2.5}s`);
+                    graffiti.style.setProperty("--graffiti-delay", `${Math.random() * 3}s`);
+                    graffiti.style.setProperty("--graffiti-start-rotation", `${Math.random() * 40 - 20}deg`);
+                    graffiti.style.setProperty("--graffiti-end-rotation", `${Math.random() * 100 - 50}deg`);
+                    topGraffitiLayer.appendChild(graffiti);
+                }
+            }
+
+            function createGraffitiBurst() {
+                graffitiBurstLayer.replaceChildren();
+
+                for (let index = 0; index < 30; index += 1) {
+                    const graffiti = document.createElement("span");
+                    const isRight = index % 2 === 0;
+                    const startLeft = isRight ? 52 + Math.random() * 44 : 4 + Math.random() * 44;
+                    graffiti.className = "burst-graffiti";
+                    graffiti.textContent = graffitiSymbols[Math.floor(Math.random() * graffitiSymbols.length)];
+                    graffiti.style.setProperty("--burst-left", `${startLeft}%`);
+                    graffiti.style.setProperty("--burst-top", `${Math.random() * 14}%`);
+                    graffiti.style.setProperty("--burst-x", `${Math.random() * 300 - 150}px`);
+                    graffiti.style.setProperty("--burst-y", `${35 + Math.random() * 95}px`);
+                    graffiti.style.setProperty("--burst-rotation", `${Math.random() * 180 - 90}deg`);
+                    graffiti.style.setProperty("--graffiti-color", graffitiColors[index % graffitiColors.length]);
+                    graffiti.style.setProperty("--graffiti-size", `${0.95 + Math.random() * 0.85}rem`);
+                    graffiti.style.setProperty("--burst-delay", `${Math.random() * 0.35}s`);
+                    graffitiBurstLayer.appendChild(graffiti);
+                }
+
+                setTimeout(() => graffitiBurstLayer.replaceChildren(), 1900);
+            }
+
+            function createEnvelopeFlowers() {
+                envelopeFlowerLayer.replaceChildren();
+
+                for (let index = 0; index < 14; index += 1) {
+                    const flower = document.createElement("span");
+                    const angle = Math.random() * Math.PI * 2;
+                    const horizontalRadius = 28 + Math.random() * 22;
+                    const verticalRadius = 12 + Math.random() * 18;
+                    const left = 50 + Math.cos(angle) * horizontalRadius;
+                    const top = 35 + Math.sin(angle) * verticalRadius;
+
+                    flower.className = "envelope-flower";
+                    flower.textContent = "✿";
+                    flower.style.setProperty("--flower-left", `${left}%`);
+                    flower.style.setProperty("--flower-top", `${top}%`);
+                    flower.style.setProperty(
+                        "--flower-color",
+                        flowerColors[Math.floor(Math.random() * flowerColors.length)],
+                    );
+                    flower.style.setProperty("--flower-size", `${0.6 + Math.random() * 0.6}rem`);
+                    flower.style.setProperty("--flower-rotation", `${Math.random() * 50 - 25}deg`);
+                    flower.style.setProperty("--flower-delay", `${Math.random() * 3.2}s`);
+                    envelopeFlowerLayer.appendChild(flower);
+                }
+            }
+
+            function burstParticles() {
+                particleLayer.replaceChildren();
+
+                for (let index = 0; index < 18; index += 1) {
+                    const particle = document.createElement("span");
+                    const isHeart = index % 4 === 0;
+                    particle.className = `particle${isHeart ? " particle--heart" : " particle--sticker"}`;
+                    particle.textContent = isHeart
+                        ? "♥"
+                        : particleSymbols[index % particleSymbols.length];
+                    particle.style.setProperty("--particle-x", `${Math.random() * 320 - 160}px`);
+                    particle.style.setProperty("--particle-y", `${Math.random() * -180 - 30}px`);
+                    particle.style.setProperty("--particle-rotation", `${Math.random() * 100 - 50}deg`);
+                    particle.style.setProperty("--particle-size", `${Math.random() * 0.7 + 0.8}rem`);
+                    particle.style.setProperty(
+                        "--particle-color",
+                        isHeart
+                            ? index % 8 === 0
+                                ? "#1b8f4d"
+                                : "#111111"
+                            : index % 2 === 0
+                              ? "#1b8f4d"
+                              : "#111111",
+                    );
+                    particle.style.setProperty("--particle-delay", `${Math.random() * 0.12}s`);
+                    particleLayer.appendChild(particle);
+                }
+
+                setTimeout(() => particleLayer.replaceChildren(), 1500);
+            }
+
+            envelope.addEventListener("click", () => {
+                envelope.classList.toggle("open");
+                const isOpen = envelope.classList.contains("open");
+                document.body.classList.toggle("letter-open", isOpen);
+                if (!isOpen) {
+                    envelopeFlowerLayer.replaceChildren();
+                    topGraffitiLayer.replaceChildren();
+                    graffitiBurstLayer.replaceChildren();
+                    vm.pause();
+                    bgmusic.pause();
+                    bgmusic.currentTime = 0;
+                    close.currentTime = 3;
+                    close.play();
+                        document.querySelector('.flap').style.filter = "drop-shadow(0 5px 5px rgba(0, 0, 0, 0.4))";
+                    setTimeout(() => {
+                        seal.style.transform = "translateX(-50%) scale(1)";
+                        inst.innerText = "Click to Open";
+                        document.body.style.backgroundColor = "var(--bg-color)";
+                    }, 1000);
+                } else {
+                    seal.style.transform = "translateX(-50%) scale(0)";
+                    createEnvelopeFlowers();
+                    createTopGraffiti();
+                    createGraffitiBurst();
+                    burstParticles();
+                    audio.currentTime = 1.6;
+                    audio.play();
+                    bgmusic.currentTime = 0;
+                    bgmusic.play();
+                    setTimeout(() => {
+                        vm.play();
+                        inst.innerText = "Click to Close";
+                        document.body.style.backgroundColor = "var(--bg-color)";
+                        document.querySelector('.flap').style.filter = "none";
+                    }, 400);
+                }
+            });
+
+            bouquet.addEventListener("click", () => {
+                if (document.body.classList.contains("letter-open")) {
+                    createGraffitiBurst();
+                }
+            });
+        </script>
+    </body>
+</html>
