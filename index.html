@@ -477,6 +477,45 @@
             .letter-open .bouquet:active + .envelope-flower-layer {
                 z-index: 11;
             }
+            .meme-jumpscare {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                z-index: 30;
+                width: min(82vw, 520px);
+                max-height: 82vh;
+                object-fit: contain;
+                pointer-events: none;
+                opacity: 0;
+                transform: translate(-50%, -50%) scale(0.12) rotate(-5deg);
+                filter: drop-shadow(0 10px 16px rgba(0, 0, 0, 0.55));
+            }
+            .meme-jumpscare.is-active {
+                animation: meme-jumpscare 1.6s ease-out forwards;
+            }
+            @keyframes meme-jumpscare {
+                0% {
+                    opacity: 0;
+                    transform: translate(-50%, -50%) scale(0.72) rotate(-3deg);
+                }
+                18% {
+                    opacity: 1;
+                    transform: translate(-50%, -50%) scale(1.03) rotate(1deg);
+                }
+                32%,
+                48% {
+                    opacity: 1;
+                    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+                }
+                70% {
+                    opacity: 0.7;
+                    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+                }
+                100% {
+                    opacity: 0;
+                    transform: translate(-50%, -50%) scale(1) rotate(0deg);
+                }
+            }
             @media (orientation: landscape) {
                 .bouquet {
                     width: min(100vw, 42vh);
@@ -548,6 +587,7 @@
         <audio src="letter.mp3" id="open-sound" preload="auto"></audio>
         <audio src="seal.mp3" id="sealed" preload="auto"></audio>
         <audio src="bgmusic.mp3" id="bgmusic" preload="auto" loop></audio>
+        <audio src="rizz.mp3" id="rizz-sound" preload="auto"></audio>
 
         <div class="envelope-wrapper" id="envelope">
             <div class="envelope">
@@ -576,6 +616,7 @@
         <div class="graffiti-burst-layer" aria-hidden="true"></div>
         <img src="hbd.png" alt="Happy Birthday" class="hbd-badge" />
         <img src="boquet-upscaled.png" alt="Flower bouquet" class="bouquet" />
+        <img src="meme.png" alt="" class="meme-jumpscare" aria-hidden="true" />
         <div class="envelope-flower-layer" aria-hidden="true"></div>
 
         <script>
@@ -585,12 +626,14 @@
             const vm = document.getElementById("vm");
             const close = document.getElementById("sealed");
             const bgmusic = document.getElementById("bgmusic");
+            const rizzSound = document.getElementById("rizz-sound");
             const inst = document.querySelector(".inst");
             const particleLayer = document.querySelector(".particle-layer");
             const envelopeFlowerLayer = document.querySelector(".envelope-flower-layer");
             const topGraffitiLayer = document.querySelector(".top-graffiti-layer");
             const graffitiBurstLayer = document.querySelector(".graffiti-burst-layer");
             const bouquet = document.querySelector(".bouquet");
+            const memeJumpscare = document.querySelector(".meme-jumpscare");
             const particleSymbols = ["*", "+", "x", ".", "~"];
             const flowerColors = [
                 "#1b1b1b",
@@ -724,7 +767,10 @@
                     envelopeFlowerLayer.replaceChildren();
                     topGraffitiLayer.replaceChildren();
                     graffitiBurstLayer.replaceChildren();
+                    memeJumpscare.classList.remove("is-active");
                     vm.pause();
+                    rizzSound.pause();
+                    rizzSound.currentTime = 0;
                     bgmusic.pause();
                     bgmusic.currentTime = 0;
                     close.currentTime = 3;
@@ -756,7 +802,12 @@
 
             bouquet.addEventListener("click", () => {
                 if (document.body.classList.contains("letter-open")) {
+                    rizzSound.currentTime = 0.26;
+                    rizzSound.play();
                     createGraffitiBurst();
+                    memeJumpscare.classList.remove("is-active");
+                    void memeJumpscare.offsetWidth;
+                    memeJumpscare.classList.add("is-active");
                 }
             });
 
@@ -773,7 +824,7 @@
                 ),
             );
             const waitForFonts = document.fonts?.ready ?? Promise.resolve();
-            const audioAssets = [audio, vm, close, bgmusic];
+            const audioAssets = [audio, vm, close, bgmusic, rizzSound];
             const waitForAudio = Promise.all(
                 audioAssets.map((track) => {
                     track.load();
