@@ -39,6 +39,51 @@
                 transition: background-color 0.5s ease-in-out;
             }
 
+            body.is-loading > *:not(.loading-screen) {
+                pointer-events: none;
+            }
+
+            .loading-screen {
+                position: fixed;
+                inset: 0;
+                z-index: 100;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                justify-content: center;
+                gap: 14px;
+                color: #263238;
+                background: linear-gradient(135deg, #eff9e8, #c9e8c2 52%, #f7e6a2);
+                opacity: 1;
+                visibility: visible;
+                transition: opacity 0.55s ease, visibility 0.55s ease;
+            }
+
+            .loading-screen.is-ready {
+                opacity: 0;
+                visibility: hidden;
+                pointer-events: none;
+            }
+
+            .loading-spinner {
+                width: 38px;
+                height: 38px;
+                border: 4px solid rgba(38, 50, 56, 0.18);
+                border-top-color: #1b8f4d;
+                border-radius: 50%;
+                animation: loading-spin 0.85s linear infinite;
+            }
+
+            .loading-text {
+                font: 600 0.78rem "Segoe UI", sans-serif;
+                letter-spacing: 0.12em;
+                text-transform: uppercase;
+            }
+
+            @keyframes loading-spin {
+                to { transform: rotate(360deg); }
+            }
+
             @font-face {
                 font-family: "lr";
                 src: url(LR.otf) format("opentype");
@@ -491,7 +536,11 @@
             }
         </style>
     </head>
-    <body>
+    <body class="is-loading">
+        <div class="loading-screen" id="loading-screen" role="status" aria-live="polite">
+            <div class="loading-spinner" aria-hidden="true"></div>
+            <span class="loading-text">Preparing your letter</span>
+        </div>
         <audio src="HVD.mp3" id="vm"></audio>
         <audio src="letter.mp3" id="open-sound"></audio>
         <audio src="seal.mp3" id="sealed"></audio>
@@ -707,6 +756,28 @@
                     createGraffitiBurst();
                 }
             });
+
+            const loadingScreen = document.getElementById("loading-screen");
+            const imageAssets = [...document.images];
+            const waitForImages = Promise.all(
+                imageAssets.map((image) =>
+                    image.complete
+                        ? image.decode?.().catch(() => {})
+                        : new Promise((resolve) => {
+                              image.addEventListener("load", resolve, { once: true });
+                              image.addEventListener("error", resolve, { once: true });
+                          }),
+                ),
+            );
+            const waitForFonts = document.fonts?.ready ?? Promise.resolve();
+
+            window.addEventListener("load", async () => {
+                await Promise.all([waitForImages, waitForFonts]);
+                await new Promise((resolve) => setTimeout(resolve, 750));
+                loadingScreen.classList.add("is-ready");
+                document.body.classList.remove("is-loading");
+                setTimeout(() => loadingScreen.remove(), 600);
+            }, { once: true });
         </script>
     </body>
 </html>
