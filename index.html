@@ -541,10 +541,10 @@
             <div class="loading-spinner" aria-hidden="true"></div>
             <span class="loading-text">Preparing your letter</span>
         </div>
-        <audio src="HVD.mp3" id="vm"></audio>
-        <audio src="letter.mp3" id="open-sound"></audio>
-        <audio src="seal.mp3" id="sealed"></audio>
-        <audio src="bgmusic.mp3" id="bgmusic" loop></audio>
+        <audio src="HVD.mp3" id="vm" preload="auto"></audio>
+        <audio src="letter.mp3" id="open-sound" preload="auto"></audio>
+        <audio src="seal.mp3" id="sealed" preload="auto"></audio>
+        <audio src="bgmusic.mp3" id="bgmusic" preload="auto" loop></audio>
 
         <div class="envelope-wrapper" id="envelope">
             <div class="envelope">
@@ -770,10 +770,24 @@
                 ),
             );
             const waitForFonts = document.fonts?.ready ?? Promise.resolve();
+            const audioAssets = [audio, vm, close, bgmusic];
+            const waitForAudio = Promise.all(
+                audioAssets.map((track) => {
+                    track.load();
+                    if (track.readyState >= HTMLMediaElement.HAVE_FUTURE_DATA) {
+                        return Promise.resolve();
+                    }
+                    return new Promise((resolve) => {
+                        track.addEventListener("canplaythrough", resolve, { once: true });
+                        track.addEventListener("error", resolve, { once: true });
+                    });
+                }),
+            );
 
             window.addEventListener("load", async () => {
-                await Promise.all([waitForImages, waitForFonts]);
-                await new Promise((resolve) => setTimeout(resolve, 1700));
+                await Promise.all([waitForImages, waitForFonts, waitForAudio]);
+                await new Promise((resolve) => setTimeout(resolve, 1700
+                ));
                 loadingScreen.classList.add("is-ready");
                 document.body.classList.remove("is-loading");
                 setTimeout(() => loadingScreen.remove(), 600);
