@@ -773,7 +773,7 @@
 
             window.addEventListener("load", async () => {
                 await Promise.all([waitForImages, waitForFonts]);
-                await new Promise((resolve) => setTimeout(resolve, 750));
+                await new Promise((resolve) => setTimeout(resolve, 1700));
                 loadingScreen.classList.add("is-ready");
                 document.body.classList.remove("is-loading");
                 setTimeout(() => loadingScreen.remove(), 600);
